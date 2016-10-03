@@ -12,12 +12,22 @@ function Player.new (spritesheet, mainSpriteQuad, pos)
     return inst
 end
 
-function Player:update()
+function Player:update(dt)
+    if self:hasAttached() then
+        self.animator:update(dt)
+    end
+end
 
+function Player:hasAttached()
+    return self.animator and true
 end
 
 function Player:draw()
-    love.graphics.draw(self.spritesheet.image, self.mainSpriteQuad, self.pos.x, self.pos.y)
+    if self:hasAttached() then
+        self.animator:draw(self.pos.x, self.pos.y)
+    else
+        love.graphics.draw(self.spritesheet.image, self.mainSpriteQuad.quad, self.pos.x, self.pos.y, self.mainSpriteQuad.rot, self.mainSpriteQuad.flipX, self.mainSpriteQuad.flipY)
+    end
 end
 
 return Player
