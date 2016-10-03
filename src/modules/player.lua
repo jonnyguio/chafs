@@ -12,10 +12,28 @@ function Player.new (spritesheet, mainSpriteQuad, pos)
     return inst
 end
 
-function Player:update(dt)
+function Player:update(dt, speed)
+    speed = speed or 2
+    if love.keyboard.isDown("down") then
+        self:move(0, dt * speed)
+    end
+    if love.keyboard.isDown("up") then
+        self:move(0, - dt * speed)
+    end
+    if love.keyboard.isDown("left") then
+        self:move(-dt * speed, 0)
+    end
+    if love.keyboard.isDown("right") then
+        self:move(dt * speed, 0)
+    end
     if self:hasAttached() then
         self.animator:update(dt)
     end
+end
+
+function Player:move(x, y)
+    self.pos.x = self.pos.x + (x or 0)
+    self.pos.y = self.pos.y + (y or 0)
 end
 
 function Player:hasAttached()

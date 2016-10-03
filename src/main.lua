@@ -3,8 +3,9 @@ local Player = require "modules.player"
 local Stage = require "modules.stage"
 local Animation = require "modules.animation"
 local Animator = require "modules.animator"
+local Camera = require "modules.camera"
 
-local heroSS, hero, stage1, heroAnimations, heroAnimator
+local heroSS, hero, stage1, heroAnimations, heroAnimator, mainCamera
 local resize = 2
 
 function createStateMachine(conditions)
@@ -17,6 +18,8 @@ function createStateMachine(conditions)
 end
 
 function love.load()
+    mainCamera = Camera.new()
+
     heroAnimations = {}
     local success = love.window.setMode( 16 * resize * 20, 16 * resize * 20)
 
@@ -99,14 +102,17 @@ function love.load()
 end
 
 function love.update(dt)
-    hero:update(dt)
+    mainCamera:update(dt, 1 / dt * 2, stage1, hero)
+    hero:update(dt, 1 / dt * 2)
 end
 
 function love.draw()
+    mainCamera:set()
     -- 1st layer
     stage1:draw()
     -- 2nd layer
     hero:draw()
+    mainCamera:unset()
 end
 
 function love.quit()
