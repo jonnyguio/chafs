@@ -1,109 +1,56 @@
-local SS = require "modules.spritesheet"
-local Player = require "modules.player"
-local Stage = require "modules.stage"
-local Animation = require "modules.animation"
-local Animator = require "modules.animator"
-local Camera = require "modules.camera"
+SS = require "modules.spritesheet"
+Player = require "modules.player"
+Stage = require "modules.stage"
+Animation = require "modules.animation"
+Animator = require "modules.animator"
+Camera = require "modules.camera"
+Scene = require "modules.scene"
+local Initializer = require "initializer"
 
-local heroSS, hero, stage1, heroAnimations, heroAnimator, mainCamera
+local heroSS, hero, stage1, heroAnimations, heroAnimator, heroStateMachine, mainCamera, testScene, controllerScene
 local resize = 2
 
-function createStateMachine(conditions)
-    local ret = {}
-    for i = 1, #conditions do
-        ret[i] = {}
-        ret[i].condition = conditions[i]
-    end
-    return ret
-end
+local currentScene, allScenes
+
+local ENUM_SCENES = {
+    CONTROLLER_LOAD = 10,
+    MAIN_MENU = 11,
+    GAME = 12
+}
 
 function love.load()
+    local joysticks = love.joystick.getJoysticks()
+
     mainCamera = Camera.new()
 
-    heroAnimations = {}
-    local success = love.window.setMode( 16 * resize * 20, 16 * resize * 20)
+    local success = love.window.setMode(800, 600)
 
+    -- Carrega spritesheet, animações e stateMachine
     heroSS = SS.new("media/images/heroSpritesheet.png", 158, 654, 16, 16)
-    table.insert(
-        heroAnimations,
-        Animation.new(heroSS, {
-            heroSS:createQuad(1, 5, resize)
-        }, "stand")
-    )
-    table.insert(
-        heroAnimations,
-        Animation.new(heroSS, {
-            heroSS:createQuad(1, 1, resize),
-            heroSS:createQuad(1, 5, resize, -1),
-            heroSS:createQuad(1, 1, resize, -1),
-            heroSS:createQuad(1, 5, resize),
-        }, "walkDown")
-    )
-    table.insert(
-        heroAnimations,
-        Animation.new(heroSS, {
-            heroSS:createQuad(1, 3, resize),
-        }, "standLeft")
-    )
-    table.insert(
-        heroAnimations,
-        Animation.new(heroSS, {
-            heroSS:createQuad(1, 3, resize),
-            heroSS:createQuad(1, 4, resize),
-        }, "walkLeft")
-    )
-    table.insert(
-        heroAnimations,
-        Animation.new(heroSS, {
-            heroSS:createQuad(1, 2, resize),
-            heroSS:createQuad(1, 2, resize, -1),
-        }, "walkUp")
-    )
+    heroAnimations = Initializer.loadHeroAnimations(heroSS, resize)
+    heroStateMachine = Initializer.loadHeroStateMachine()
+    heroAnimator = Animator.new(heroAnimations, heroStateMachine)
 
-    heroAnimator = Animator.new(heroAnimations,
-        createStateMachine({
-            [1] = function ()
-                if love.keyboard.isDown("down") then
-                    return 2
-                elseif love.keyboard.isDown("left") then
-                    return 4
-                end
-                return false
-            end,
-            [2] = function ()
-                if not love.keyboard.isDown("down") then
-                    return 1
-                end
-                return false
-            end,
-            [3] = function ()
-                if love.keyboard.isDown("down") then
-                    return 2
-                elseif love.keyboard.isDown("left") then
-                    return 4
-                end
-                return false
-            end,
-            [4] = function ()
-                if not love.keyboard.isDown("left") then
-                    return 3
-                end
-                return false
-            end
-        })
-    )
-
+    -- Carrega estágio
     stage1 = Stage.new("media/images/map2.jpg")
     stage1:resize(resize)
 
+    -- Carrega player
     hero = Player.new(heroSS, heroSS:createQuad(1, 5, resize), {x = 16 * resize * 5, y = 16 * resize * 5})
     heroAnimator:attach(hero)
     heroAnimator:play()
+
+    -- Carrega cenas
+    controllerScene = Scene.new(ENUM_SCENES.GAME)
+    controllerScene:
+
+    testScene = Scene.new(ENUM_SCENES.GAME)
+    testScene:addFunctionUpdate(mainCamera.update, mainCamera, {2, stage1, hero})
+    testScene:addFunctionUpdate(hero.update, hero, {2})
 end
 
 function love.update(dt)
-    mainCamera:update(dt, 1 / dt * 2, stage1, hero)
-    hero:update(dt, 1 / dt * 2)
+    testScene:update(dt)
 end
 
 function love.draw()
@@ -113,6 +60,13 @@ function love.draw()
     -- 2nd layer
     hero:draw()
     mainCamera:unset()
+    --[[for i, joystick in ipairs(joysticks) do
+        love.graphics.print(joystick:getName(), 10, i * 20)
+        love.graphics.print("Number of axis: " .. joystick:getAxisCount(), 15, i * 35)
+        for k = 1, joystick:getAxisCount() do
+            love.graphics.print("axis" .. k .. " - " .. joystick:getAxis(k), 20 + (k - 1) * 200, i * 50)
+        end
+    end]]--
 end
 
 function love.quit()

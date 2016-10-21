@@ -11,7 +11,7 @@ end
 
 local totalAnimations = counter()
 
-function Animation.new(spritesheet, frames, name)
+function Animation.new(spritesheet, frames, name, delay)
     local inst = {}
     setmetatable(inst, Animation)
 
@@ -25,7 +25,7 @@ function Animation.new(spritesheet, frames, name)
     inst.name = name or "Animation" .. totalAnimations()
     inst.currentFrame = 1
     inst.elapsed = 0
-    inst.delay = 0.1
+    inst.delay = delay or 0.1
 
     return inst
 end
