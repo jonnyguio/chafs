@@ -1,0 +1,22 @@
+1 movl 4(%esp), %ecx
+# %ecx = 35 = 0x00000023;
+2 movl $613566757, %edx
+# %edx = 0x24924925
+3 movl %ecx, %eax
+# %eax = 35 = 0x00000023
+4 mull %edx
+# 0x24924925 * 0x00000023 =
+#   0x00000000F
+# %edx = 0x0000000F
+5 movl %ecx, %eax
+# %eax = 35 = 0x00000023
+6 subl %edx, %eax
+# %eax = 0x00000023 - 0x0000000F
+# %eax = 0x00000014
+7 shrl %eax
+# %eax = 0x0000000a
+8 addl %edx, %eax
+# %eax = 0x00000010
+9 shrl $2, %eax
+# %eax = 0x0010004B
+10 ret

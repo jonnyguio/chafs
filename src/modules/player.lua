@@ -8,33 +8,48 @@ function Player.new (spritesheet, mainSpriteQuad, pos)
     inst.spritesheet = spritesheet
     inst.mainSpriteQuad = mainSpriteQuad
     inst.pos = pos
+    inst.speedx = 0
+    inst.speedy = 0
 
     return inst
 end
 
-function Player:update(dt, ...) -- Args : {speed}
+function Player:setSpeed(x, y)
+    self.speedx = x
+    self.speedy = y
+end
+
+function Player:keyboardpressed(dt, ...) -- Args : {speed}
     local args = {...}
     local speed = args[1][1]
     if love.keyboard.isDown("down") then
-        self:move(0, speed)
+        self:setSpeed(0, speed)
     end
     if love.keyboard.isDown("up") then
-        self:move(0, -speed)
+        self:setSpeed(0, -speed)
     end
     if love.keyboard.isDown("left") then
-        self:move(-speed, 0)
+        self:setSpeed(-speed, 0)
     end
     if love.keyboard.isDown("right") then
-        self:move(speed, 0)
+        self:setSpeed(speed, 0)
     end
+end
+
+function Player:gamepadpressed(dt, ...)
+
+end
+
+function Player:update(dt)
+    self:move()
     if self:hasAttached() then
         self.animator:update(dt)
     end
 end
 
 function Player:move(x, y)
-    self.pos.x = self.pos.x + (x or 0)
-    self.pos.y = self.pos.y + (y or 0)
+    self.pos.x = self.pos.x + (x or self.speedx)
+    self.pos.y = self.pos.y + (y or self.speedy)
 end
 
 function Player:hasAttached()
