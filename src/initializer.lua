@@ -9,54 +9,119 @@ local function createStateMachine(conditions)
     return ret
 end
 
-function Initializer.loadHeroStateMachine()
+
+function Initializer.loadHeroStateMachine(_hero)
+    local ENUM_STATES = {
+        STANDDOWN = 1,
+        WALKDOWN = 2,
+        STANDUP = 3,
+        WALKUP = 4,
+        STANDLEFT = 5,
+        WALKLEFT = 6,
+        STANDRIGHT = 7,
+        WALKRIGHT = 8
+    }
+    local hero = _hero
     return createStateMachine({
-        [1] = function ()
-            if love.keyboard.isDown("down") then
-                return 2
-            elseif love.keyboard.isDown("left") then
-                return 4
-            elseif love.keyboard.isDown("up") then
-                return 5
+        [1] = function () -- standDown
+            if hero.speed.y < 0 then
+                return ENUM_STATES.WALKUP
+            elseif hero.speed.y > 0 then
+                return ENUM_STATES.WALKDOWN
+            else
+                if hero.speed.x < 0 then
+                    return ENUM_STATES.WALKLEFT
+                elseif hero.speed.x > 0 then
+                    return ENUM_STATES.WALKRIGHT
+                end
             end
             return false
         end,
-        [2] = function ()
-            if not love.keyboard.isDown("down") then
-                return 1
+        [2] = function () -- moveDown
+            if hero.speed.y <= 0 then
+                if hero.speed.x < 0 then
+                    return ENUM_STATES.WALKLEFT
+                elseif hero.speed.x > 0 then
+                    return ENUM_STATES.WALKRIGHT
+                end
+                return ENUM_STATES.STANDDOWN
             end
             return false
         end,
         [3] = function ()
-            if love.keyboard.isDown("down") then
-                return 2
-            elseif love.keyboard.isDown("left") then
-                return 4
-            elseif love.keyboard.isDown("up") then
-                return 5
+            if hero.speed.y < 0 then
+                return ENUM_STATES.WALKUP
+            elseif hero.speed.y > 0 then
+                return ENUM_STATES.WALKDOWN
+            else
+                if hero.speed.x < 0 then
+                    return ENUM_STATES.WALKLEFT
+                elseif hero.speed.x > 0 then
+                    return ENUM_STATES.WALKRIGHT
+                end
             end
             return false
         end,
         [4] = function ()
-            if not love.keyboard.isDown("left") then
-                return 3
+            if hero.speed.y >= 0 then
+                if hero.speed.x < 0 then
+                    return ENUM_STATES.WALKLEFT
+                elseif hero.speed.x > 0 then
+                    return ENUM_STATES.WALKRIGHT
+                end
+                return ENUM_STATES.STANDUP
             end
             return false
         end,
         [5] = function ()
-            if not love.keyboard.isDown("up") then
-                return 6
+            if hero.speed.x < 0 then
+                return ENUM_STATES.WALKLEFT
+            elseif hero.speed.x > 0 then
+                return ENUM_STATES.WALKRIGHT
+            else
+                if hero.speed.y < 0 then
+                    return ENUM_STATES.WALKDOWN
+                elseif hero.speed.y > 0 then
+                    return ENUM_STATES.WALKUP
+                end
             end
             return false
         end,
         [6] = function ()
-            if love.keyboard.isDown("down") then
-                return 2
-            elseif love.keyboard.isDown("left") then
-                return 4
-            elseif love.keyboard.isDown("up") then
-                return 5
+            if hero.speed.x >= 0 then
+                if hero.speed.y < 0 then
+                    return ENUM_STATES.WALKUP
+                elseif hero.speed.y > 0 then
+                    return ENUM_STATES.WALKDOWN
+                end
+                return ENUM_STATES.STANDLEFT
             end
+            return false
+        end,
+        [7] = function()
+            if hero.speed.x < 0 then
+                return ENUM_STATES.WALKLEFT
+            elseif hero.speed.x > 0 then
+                return ENUM_STATES.WALKRIGHT
+            else
+                if hero.speed.y < 0 then
+                    return ENUM_STATES.WALKDOWN
+                elseif hero.speed.y > 0 then
+                    return ENUM_STATES.WALKUP
+                end
+            end
+            return false
+        end,
+        [8] = function()
+            if hero.speed.x <= 0 then
+                if hero.speed.y < 0 then
+                    return ENUM_STATES.WALKUP
+                elseif hero.speed.y > 0 then
+                    return ENUM_STATES.WALKDOWN
+                end
+                return ENUM_STATES.STANDRIGHT
+            end
+            return false
         end
     })
 end
@@ -70,7 +135,7 @@ function Initializer.loadHeroAnimations(_HeroSS, resize)
         t_HeroAnimations,
         Animation.new(_HeroSS, {
             _HeroSS:createQuad(1, 1, resize)
-        }, "stand", 0.08)
+        }, "standDown", 0.08)
     )
     table.insert(
         t_HeroAnimations,
@@ -84,6 +149,21 @@ function Initializer.loadHeroAnimations(_HeroSS, resize)
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
+            _HeroSS:createQuad(1, 2, resize)
+        }, "standUp", 0.08)
+    )
+
+    table.insert(
+        t_HeroAnimations,
+        Animation.new(_HeroSS, {
+            _HeroSS:createQuad(1, 2, resize),
+            _HeroSS:createQuad(1, 2, resize, -1),
+        }, "walkUp", 0.08)
+    )
+
+    table.insert(
+        t_HeroAnimations,
+        Animation.new(_HeroSS, {
             _HeroSS:createQuad(1, 3, resize),
         }, "standLeft", 0.08)
     )
@@ -94,18 +174,19 @@ function Initializer.loadHeroAnimations(_HeroSS, resize)
             _HeroSS:createQuad(1, 4, resize),
         }, "walkLeft", 0.08)
     )
+
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 2, resize),
-            _HeroSS:createQuad(1, 2, resize, -1),
-        }, "walkUp", 0.08)
+            _HeroSS:createQuad(1, 3, resize, -1),
+        }, "standRight", 0.08)
     )
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 2, resize)
-        }, "standUp", 0.08)
+            _HeroSS:createQuad(1, 3, resize, -1),
+            _HeroSS:createQuad(1, 4, resize, -1),
+        }, "walkRight", 0.08)
     )
     return t_HeroAnimations
 end

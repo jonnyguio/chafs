@@ -1,42 +1,50 @@
 local Player = {}
 Player.__index = Player
 
-function Player.new (spritesheet, mainSpriteQuad, pos)
+function Player.new (spritesheet, mainSpriteQuad, pos, speed)
     local inst = {}
     setmetatable(inst, Player)
 
     inst.spritesheet = spritesheet
     inst.mainSpriteQuad = mainSpriteQuad
     inst.pos = pos
-    inst.speedx = 0
-    inst.speedy = 0
+    inst.speed = {base = speed or 1, x = 0, y = 0}
 
     return inst
 end
 
 function Player:setSpeed(x, y)
-    self.speedx = x
-    self.speedy = y
+    self.speed.x = x
+    self.speed.y = y
 end
 
-function Player:keyboardpressed(dt, ...) -- Args : {speed}
+function Player:keyboardpressed(key, ...) -- Args : {speed}
     local args = {...}
-    local speed = args[1][1]
-    if love.keyboard.isDown("down") then
-        self:setSpeed(0, speed)
-    end
-    if love.keyboard.isDown("up") then
-        self:setSpeed(0, -speed)
-    end
-    if love.keyboard.isDown("left") then
-        self:setSpeed(-speed, 0)
-    end
-    if love.keyboard.isDown("right") then
-        self:setSpeed(speed, 0)
+    if key == "down" then
+        self:setSpeed(self.speed.x, self.speed.y + self.speed.base)
+    elseif key == "up" then
+        self:setSpeed(self.speed.x, self.speed.y - self.speed.base)
+    elseif key == "left" then
+        self:setSpeed(self.speed.x - self.speed.base, self.speed.y)
+    elseif key == "right" then
+        self:setSpeed(self.speed.x + self.speed.base, self.speed.y)
     end
 end
 
-function Player:gamepadpressed(dt, ...)
+function Player:keyboardreleased(key, ...)
+    local args = {...}
+    if key == "down" then
+        self:setSpeed(self.speed.x, self.speed.y - self.speed.base)
+    elseif key == "up" then
+        self:setSpeed(self.speed.x, self.speed.y + self.speed.base)
+    elseif key == "left" then
+        self:setSpeed(self.speed.x + self.speed.base, self.speed.y)
+    elseif key == "right" then
+        self:setSpeed(self.speed.x - self.speed.base, self.speed.y)
+    end
+end
+
+function Player:gamepadpressed(...)
 
 end
 
@@ -48,8 +56,8 @@ function Player:update(dt)
 end
 
 function Player:move(x, y)
-    self.pos.x = self.pos.x + (x or self.speedx)
-    self.pos.y = self.pos.y + (y or self.speedy)
+    self.pos.x = self.pos.x + (x or self.speed.x)
+    self.pos.y = self.pos.y + (y or self.speed.y)
 end
 
 function Player:hasAttached()

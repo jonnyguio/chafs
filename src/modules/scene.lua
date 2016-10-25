@@ -9,7 +9,9 @@ function Scene.new(index)
     inst.updateFunctions = {}; inst.updateFunctionsSelfs = {}; inst.updateFunctionsArgs = {}
     inst.cameras = {}; inst.camerasIndexBegin = {}; inst.camerasIndexEnd = {}
     inst.drawFunctions = {}; inst.drawFunctionsSelfs = {}; inst.drawFunctionsArgs = {}; inst.drawOrders = {}
-    inst.gamepadpressedFunctions = {}; inst.gamepadpressedFunctionsSelfs = {}; inst.gamepadpressedFunctionsArgs = {}    inst.keyboardpressedFunctions = {}; inst.keyboardpressedFunctionsSelfs = {}; inst.keyboardpressedFunctionsArgs = {}
+    inst.gamepadpressedFunctions = {}; inst.gamepadpressedFunctionsSelfs = {}; inst.gamepadpressedFunctionsArgs = {}
+    inst.keyboardpressedFunctions = {}; inst.keyboardpressedFunctionsSelfs = {}; inst.keyboardpressedFunctionsArgs = {}
+    inst.keyboardreleasedFunctions = {}; inst.keyboardreleasedFunctionsSelfs = {}; inst.keyboardreleasedFunctionsArgs = {}
 
     return inst
 end
@@ -32,10 +34,21 @@ function Scene:addkeyboardpressedFunction(func, _self, args)
     table.insert(self.keyboardpressedFunctionsArgs, args)
 end
 
-function Scene:keyboardpressed()
-    print("test")
+function Scene:keyboardpressed(key)
     for k in pairs(self.keyboardpressedFunctions) do
-        self.keyboardpressedFunctions[k](self.keyboardpressedFunctionsSelfs[k], dt, self.keyboardpressedFunctionsArgs[k])
+        self.keyboardpressedFunctions[k](self.keyboardpressedFunctionsSelfs[k], key, self.keyboardpressedFunctionsArgs[k])
+    end
+end
+
+function Scene:addkeyboardreleasedFunction(func, _self, args)
+    table.insert(self.keyboardreleasedFunctions, func)
+    table.insert(self.keyboardreleasedFunctionsSelfs, _self)
+    table.insert(self.keyboardreleasedFunctionsArgs, args)
+end
+
+function Scene:keyboardreleased(key)
+    for k in pairs(self.keyboardreleasedFunctions) do
+        self.keyboardreleasedFunctions[k](self.keyboardreleasedFunctionsSelfs[k], key, self.keyboardreleasedFunctionsArgs[k])
     end
 end
 
@@ -47,7 +60,7 @@ end
 
 function Scene:gamepadpressed()
     for k in pairs(self.gamepadpressedFunctions) do
-        self.gamepadpressedFunctions[k](self.gamepadpressedFunctionsSelfs[k], dt, self.gamepadpressedFunctionsArgs[k])
+        self.gamepadpressedFunctions[k](self.gamepadpressedFunctionsSelfs[k], self.gamepadpressedFunctionsArgs[k])
     end
 end
 
@@ -73,11 +86,9 @@ function Scene:painterReOrder()
                 aux = self.drawFunctionsSelfs[j]
                 self.drawFunctionsSelfs[j] = self.drawFunctionsSelfs[k]
                 self.drawFunctionsSelfs[k] = aux
-                print(self.drawOrders[k], self.drawOrders[j])
                 aux = self.drawOrders[j]
                 self.drawOrders[j] = self.drawOrders[k]
                 self.drawOrders[k] = aux
-                print(self.drawOrders[k], self.drawOrders[j])
             end
         end
     end

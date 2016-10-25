@@ -9,6 +9,7 @@ local Initializer = require "initializer"
 
 local heroSS, hero, heroAnimations, heroAnimator, heroStateMachine
 local mainCamera
+local controllers
 local testScene, controllerScene
 local stage1
 local resize = 2
@@ -57,21 +58,22 @@ function love.load()
     ----- Carrega spritesheet, animações e stateMachine
     heroSS = SS.new("media/images/heroSpritesheet.png", 158, 654, 16, 16)
     heroAnimations = Initializer.loadHeroAnimations(heroSS, resize)
-    heroStateMachine = Initializer.loadHeroStateMachine()
-    heroAnimator = Animator.new(heroAnimations, heroStateMachine)
 
     ----- Carrega estágio
     stage1 = Stage.new("media/images/map2.jpg")
     stage1:resize(resize)
 
     ----- Carrega player
-    hero = Player.new(heroSS, heroSS:createQuad(1, 5, resize), {x = 16 * resize * 5, y = 16 * resize * 5})
+    hero = Player.new(heroSS, heroSS:createQuad(1, 5, resize), {x = 16 * resize * 5, y = 16 * resize * 5}, 2)
+    heroStateMachine = Initializer.loadHeroStateMachine(hero)
+    heroAnimator = Animator.new(heroAnimations, heroStateMachine)
     heroAnimator:attach(hero)
     heroAnimator:play()
 
     ----- Carrega cenas
     -- cena de controllers
     controllerScene = Scene.new(ENUM_SCENES.GAME)
+    controllers = {}
     --[[controllerScene:addUpdateFunction(function()
         local joysticks = love.joystick.getJoysticks()
         for k in pairs (joysticks) do
@@ -82,7 +84,8 @@ function love.load()
 
     -- cena teste
     testScene = Scene.new(ENUM_SCENES.GAME)
-    testScene:addkeyboardpressedFunction(hero.keyboardpressed, hero, {2}) -- 2 = speed
+    testScene:addkeyboardpressedFunction(hero.keyboardpressed, hero) -- 2 = speed
+    testScene:addkeyboardreleasedFunction(hero.keyboardreleased, hero) -- 2 = speed
     testScene:addUpdateFunction(mainCamera.update, mainCamera, {2, stage1, hero})
     testScene:addUpdateFunction(hero.update, hero, {})
     testScene:addDrawFunction(hero.draw, hero, {}, ENUM_DRAWORDER.CREATURES)
@@ -92,15 +95,23 @@ function love.load()
 end
 
 function love.keypressed(key, scancode, isrepeat)
-    testScene:keyboardpressed()
+    if controllers.keyboard then
+        testScene:keyboardpressed(key)
+    end
 end
 
 function love.keyreleased(key, scancode, isrepeat)
-    testScene:keyboardreleased()
+    if controllers.keyboard then
+        testScene:keyboardreleased(key)
+    end
 end
 
-function love.gamepadpressed()
-    testScene:gamepadpressed()
+function love.gamepadpressed(joystick, key)
+    for k, v in pairs(controllers) do
+        if v.joystick == joystick then
+            testScene:gamepadpressed(key)
+        end
+    end
 end
 
 function love.update(dt)
