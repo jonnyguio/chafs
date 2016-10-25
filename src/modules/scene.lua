@@ -58,9 +58,9 @@ function Scene:addgamepadpressedFunction(func, _self, args)
     table.insert(self.gamepadpressedFunctionsArgs, args)
 end
 
-function Scene:gamepadpressed()
+function Scene:gamepadpressed(joystick, key)
     for k in pairs(self.gamepadpressedFunctions) do
-        self.gamepadpressedFunctions[k](self.gamepadpressedFunctionsSelfs[k], self.gamepadpressedFunctionsArgs[k])
+        self.gamepadpressedFunctions[k](self.gamepadpressedFunctionsSelfs[k], joystick, key, self.gamepadpressedFunctionsArgs[k])
     end
 end
 

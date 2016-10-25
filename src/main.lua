@@ -10,7 +10,7 @@ local Initializer = require "initializer"
 local heroSS, hero, heroAnimations, heroAnimator, heroStateMachine
 local mainCamera
 local controllers
-local testScene, controllerScene
+local testScene, controllersScene
 local stage1
 local resize = 2
 
@@ -39,7 +39,8 @@ local currentScene, allScenes
 local ENUM_SCENES = {
     CONTROLLER_LOAD = 10,
     MAIN_MENU = 11,
-    GAME = 12
+    GAME = 12,
+    TEST = 13
 }
 
 local ENUM_DRAWORDER = {
@@ -72,15 +73,31 @@ function love.load()
 
     ----- Carrega cenas
     -- cena de controllers
-    controllerScene = Scene.new(ENUM_SCENES.GAME)
+    controllersScene = Scene.new(ENUM_SCENES.GAME)
     controllers = {}
-    --[[controllerScene:addUpdateFunction(function()
-        local joysticks = love.joystick.getJoysticks()
-        for k in pairs (joysticks) do
-            if k:isDown() then
+    controllersScene:addkeyboardpressedFunction(function(_controllers, key, ...)
+        if _controllers.keyboard == nil then
+            if key == "space" then
+                print("Keyboard entered the game")
+                _controllers.keyboard = true
             end
         end
-    end)]]--
+    end,
+        controllers
+    )
+    controllersScene:addgamepadpressedFunction(function(_controllers, joystick, key, ...)
+        for k, v in pairs(_controllers) do
+            if v == joystick then
+                return
+            end
+        end
+        if key == "a" then
+            print("Joystick " .. joystick:getID() .. " entered the game.")
+            table.insert(_controllers, joystick)
+        end
+    end,
+        controllers
+    )
 
     -- cena teste
     testScene = Scene.new(ENUM_SCENES.GAME)
@@ -92,36 +109,57 @@ function love.load()
     testScene:addDrawFunction(stage1.draw, stage1, {}, ENUM_DRAWORDER.SCENARIO)
     testScene:addCamera(mainCamera, 1, 2)
 
+    runningScene = ENUM_SCENES.CONTROLLER_LOAD
 end
 
 function love.keypressed(key, scancode, isrepeat)
-    if controllers.keyboard then
-        testScene:keyboardpressed(key)
+    if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
+        controllersScene:keyboardpressed(key)
+    elseif runningScene == ENUM_SCENES.TEST then
+        if controllers.keyboard then
+            testScene:keyboardpressed(key)
+        end
     end
 end
 
 function love.keyreleased(key, scancode, isrepeat)
-    if controllers.keyboard then
-        testScene:keyboardreleased(key)
+    if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
+        controllersScene:keyboardreleased()
+    elseif runningScene == ENUM_SCENES.TEST then
+        if controllers.keyboard then
+            testScene:keyboardreleased(key)
+        end
     end
 end
 
 function love.gamepadpressed(joystick, key)
-    for k, v in pairs(controllers) do
-        if v.joystick == joystick then
-            testScene:gamepadpressed(key)
+    if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
+        controllersScene:gamepadpressed(joystick, key)
+    elseif runningScene == ENUM_SCENES.TEST then
+        for k, v in pairs(controllers) do
+            if v.joystick == joystick then
+                testScene:gamepadpressed(key)
+            end
         end
     end
 end
 
 function love.update(dt)
-    testScene:update(dt)
-    for k in pairs(love.joystick.getJoysticks()) do
+    if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
+        controllersScene:update()
+    elseif runningScene == ENUM_SCENES.TEST then
+        testScene:update(dt)
+        for k in pairs(love.joystick.getJoysticks()) do
+        end
     end
 end
 
 function love.draw()
-    testScene:draw()
+    if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
+        controllersScene:draw()
+    elseif runningScene == ENUM_SCENES.TEST then
+        testScene:draw()
+    end
     --[[mainCamera:set()
     -- 1st layer
     stage1:draw()
