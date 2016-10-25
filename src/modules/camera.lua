@@ -22,18 +22,16 @@ function Camera:update(dt, ...) -- Args: (dt, speed, stage, player)
     local player = args[1][3]
     local width, height, flags = love.window.getMode()
     if player.pos.y == self.y + height / 2 then
-        if love.keyboard.isDown("down") then
-            self:move(0, speed, stage)
-        end
-        if love.keyboard.isDown("up") then
+        if player.speed.y < 0 then
             self:move(0, -speed, stage)
+        elseif player.speed.y > 0 then
+            self:move(0, speed, stage)
         end
     end
     if player.pos.x == self.x + width / 2 then
-        if love.keyboard.isDown("left") then
+        if player.speed.x < 0 then
             self:move(-speed, 0, stage)
-        end
-        if love.keyboard.isDown("right") then
+        elseif player.speed.x > 0 then
             self:move(speed, 0, stage)
         end
     end

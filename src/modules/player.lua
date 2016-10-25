@@ -44,8 +44,28 @@ function Player:keyboardreleased(key, ...)
     end
 end
 
-function Player:gamepadpressed(...)
+function Player:gamepadpressed(joystick, key, ...)
+    if key == "dpdown" then
+        self:setSpeed(self.speed.x, self.speed.y + self.speed.base)
+    elseif key == "dpup" then
+        self:setSpeed(self.speed.x, self.speed.y - self.speed.base)
+    elseif key == "dpleft" then
+        self:setSpeed(self.speed.x - self.speed.base, self.speed.y)
+    elseif key == "dpright" then
+        self:setSpeed(self.speed.x + self.speed.base, self.speed.y)
+    end
+end
 
+function Player:gamepadreleased(joystick, key, ...)
+    if key == "dpdown" then
+        self:setSpeed(self.speed.x, self.speed.y - self.speed.base)
+    elseif key == "dpup" then
+        self:setSpeed(self.speed.x, self.speed.y + self.speed.base)
+    elseif key == "dpleft" then
+        self:setSpeed(self.speed.x + self.speed.base, self.speed.y)
+    elseif key == "dpright" then
+        self:setSpeed(self.speed.x - self.speed.base, self.speed.y)
+    end
 end
 
 function Player:update(dt)

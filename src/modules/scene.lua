@@ -5,11 +5,12 @@ function Scene.new(index)
     local inst = {}
     setmetatable(inst, Scene)
 
-    inst.index = index
+    inst.index = index; inst.transitioning = false
     inst.updateFunctions = {}; inst.updateFunctionsSelfs = {}; inst.updateFunctionsArgs = {}
     inst.cameras = {}; inst.camerasIndexBegin = {}; inst.camerasIndexEnd = {}
     inst.drawFunctions = {}; inst.drawFunctionsSelfs = {}; inst.drawFunctionsArgs = {}; inst.drawOrders = {}
     inst.gamepadpressedFunctions = {}; inst.gamepadpressedFunctionsSelfs = {}; inst.gamepadpressedFunctionsArgs = {}
+    inst.gamepadreleasedFunctions = {}; inst.gamepadreleasedFunctionsSelfs = {}; inst.gamepadreleasedFunctionsArgs = {}
     inst.keyboardpressedFunctions = {}; inst.keyboardpressedFunctionsSelfs = {}; inst.keyboardpressedFunctionsArgs = {}
     inst.keyboardreleasedFunctions = {}; inst.keyboardreleasedFunctionsSelfs = {}; inst.keyboardreleasedFunctionsArgs = {}
 
@@ -64,6 +65,17 @@ function Scene:gamepadpressed(joystick, key)
     end
 end
 
+function Scene:addgamepadreleasedFunction(func, _self, args)
+    table.insert(self.gamepadreleasedFunctions, func)
+    table.insert(self.gamepadreleasedFunctionsSelfs, _self)
+    table.insert(self.gamepadreleasedFunctionsArgs, args)
+end
+
+function Scene:gamepadreleased(joystick, key)
+    for k in pairs(self.gamepadreleasedFunctions) do
+        self.gamepadreleasedFunctions[k](self.gamepadreleasedFunctionsSelfs[k], joystick, key, self.gamepadreleasedFunctionsArgs[k])
+    end
+end
 function Scene:addCamera(cam, indexBegin, indexEnd)
     table.insert(self.cameras, cam)
     table.insert(self.camerasIndexBegin, indexBegin)
@@ -109,7 +121,7 @@ function Scene:draw()
                 self.cameras[j]:set()
             end
         end
-        self.drawFunctions[k](self.drawFunctionsSelfs[k], self.drawFunctionsArgs)
+        self.drawFunctions[k](self.drawFunctionsSelfs[k], self.drawFunctionsArgs[k])
         for j in pairs(self.cameras) do
             if k == self.camerasIndexEnd[j] then
                 self.cameras[j]:unset()

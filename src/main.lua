@@ -5,7 +5,17 @@ Animation = require "modules.animation"
 Animator = require "modules.animator"
 Camera = require "modules.camera"
 Scene = require "modules.scene"
+Transition = require "modules.transition"
 local Initializer = require "initializer"
+
+require "enum"
+
+-- Global Variables
+
+runningScene = {}
+icon = {}
+
+-- Local Variables
 
 local heroSS, hero, heroAnimations, heroAnimator, heroStateMachine
 local mainCamera
@@ -16,45 +26,14 @@ local resize = 2
 
 local currentScene, allScenes
 
---[[local ENUM_PS3BUTTONS = {
-    SELECT = 1,
-    L3 = 2,
-    R3 = 3,
-    START = 4,
-    ARROW_UP = 5,
-    ARROW_RIGHT = 6,
-    ARROW_DOWN = 7,
-    ARROW_LEFT = 8,
-    L2 = 9,
-    R2 = 10,
-    L1 = 11,
-    L2 = 12,
-    TRIANGLE = 13,
-    CIRCLE = 14,
-    CROSS = 15,
-    SQUARE = 16,
-    PS = 17
-}]]--
-
-local ENUM_SCENES = {
-    CONTROLLER_LOAD = 10,
-    MAIN_MENU = 11,
-    GAME = 12,
-    TEST = 13
-}
-
-local ENUM_DRAWORDER = {
-    BACKGROUND = 1,
-    MIDGROUND = 2,
-    FOREGROUND = 3,
-    SCENARIO = 4,
-    CREATURES = 5
-}
-
 function love.load()
     mainCamera = Camera.new()
 
     local success = love.window.setMode(800, 600)
+
+    icon.gamepad = love.graphics.newImage("media/images/gamepad.png")
+    icon.keyboard = love.graphics.newImage("media/images/keyboard.png")
+    controllers = {}
 
     ----- Carrega spritesheet, animações e stateMachine
     heroSS = SS.new("media/images/heroSpritesheet.png", 158, 654, 16, 16)
@@ -72,37 +51,81 @@ function love.load()
     heroAnimator:play()
 
     ----- Carrega cenas
+    controllersScene = Scene.new(ENUM_SCENES.CONTROLLER_LOAD)
+    testScene = Scene.new(ENUM_SCENES.TEST)
     -- cena de controllers
-    controllersScene = Scene.new(ENUM_SCENES.GAME)
-    controllers = {}
-    controllersScene:addkeyboardpressedFunction(function(_controllers, key, ...)
-        if _controllers.keyboard == nil then
-            if key == "space" then
+
+    controllersScene:addkeyboardpressedFunction(function(self, key, ...)
+        local args = {...}
+        local _controllers = args[1][1]
+        local newScene = args[1][2]
+        local duration = args[1][3]
+
+        if self.transitioning then return end
+
+        for k, v in pairs(_controllers) do
+            if v ~= _controllers.keyboard then
+                print("Joystick " .. v:getID() .. " has left the game")
+                table.remove(_controllers, k)
+            end
+        end
+        if key == "space" then
+            if not _controllers.keyboard then
                 print("Keyboard entered the game")
                 _controllers.keyboard = true
             end
-        end
-    end,
-        controllers
-    )
-    controllersScene:addgamepadpressedFunction(function(_controllers, joystick, key, ...)
-        for k, v in pairs(_controllers) do
-            if v == joystick then
-                return
+        elseif key == "enter" or key == "return" then
+            if _controllers.keyboard then
+                Transition.black(self, newScene, duration)
             end
         end
+    end, controllersScene, {controllers, testScene, 1})
+
+    controllersScene:addgamepadpressedFunction(function(self, joystick, key, ...)
+        local args = {...}
+        local _controllers = args[1][1]
+        local newScene = args[1][2]
+        local duration = args[1][3]
+
+        if self.transitioning then return end
+
         if key == "a" then
+            for k, v in pairs(_controllers) do
+                if v == joystick then
+                    return
+                end
+            end
+            _controllers.keyboard = false
             print("Joystick " .. joystick:getID() .. " entered the game.")
             table.insert(_controllers, joystick)
+        elseif key == "start" then
+            Transition.black(self, newScene, duration)
         end
-    end,
-        controllers
-    )
+    end, controllersScene, {controllers, testScene, 1})
+
+    controllersScene:addDrawFunction(function(self, ...)
+        local args = {...}
+        local _controllers = args[1][1]
+        local icons = args[1][2]
+        local r, g, b, a = love.graphics.getColor()
+        love.graphics.setColor(70, 130, 180, 255)
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+        love.graphics.setColor(r, g, b, a)
+
+        if _controllers.keyboard then
+            love.graphics.draw(icons.keyboard, love.graphics.getWidth() / 2 - icons.keyboard:getWidth() / 2, love.graphics.getHeight() / 2 - icons.keyboard:getHeight() / 2)
+        else
+            for k, v in pairs(_controllers) do
+                love.graphics.draw(icons.gamepad, love.graphics.getWidth() / 2 - icons.gamepad:getWidth() / 2, love.graphics.getHeight() / 2 - icons.gamepad:getHeight() / 2)
+            end
+        end
+    end, controllersScene, {controllers, icon}, ENUM_DRAWORDER.FOREGROUND)
 
     -- cena teste
-    testScene = Scene.new(ENUM_SCENES.GAME)
     testScene:addkeyboardpressedFunction(hero.keyboardpressed, hero) -- 2 = speed
     testScene:addkeyboardreleasedFunction(hero.keyboardreleased, hero) -- 2 = speed
+    testScene:addgamepadpressedFunction(hero.gamepadpressed, hero)
+    testScene:addgamepadreleasedFunction(hero.gamepadreleased, hero)
     testScene:addUpdateFunction(mainCamera.update, mainCamera, {2, stage1, hero})
     testScene:addUpdateFunction(hero.update, hero, {})
     testScene:addDrawFunction(hero.draw, hero, {}, ENUM_DRAWORDER.CREATURES)
@@ -124,7 +147,7 @@ end
 
 function love.keyreleased(key, scancode, isrepeat)
     if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
-        controllersScene:keyboardreleased()
+        controllersScene:keyboardreleased(key)
     elseif runningScene == ENUM_SCENES.TEST then
         if controllers.keyboard then
             testScene:keyboardreleased(key)
@@ -137,8 +160,20 @@ function love.gamepadpressed(joystick, key)
         controllersScene:gamepadpressed(joystick, key)
     elseif runningScene == ENUM_SCENES.TEST then
         for k, v in pairs(controllers) do
-            if v.joystick == joystick then
-                testScene:gamepadpressed(key)
+            if v ~= controllers.keyboard and v == joystick then
+                testScene:gamepadpressed(joystick, key)
+            end
+        end
+    end
+end
+
+function love.gamepadreleased(joystick, key)
+    if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
+        controllersScene:gamepadreleased(joystick, key)
+    elseif runningScene == ENUM_SCENES.TEST then
+        for k, v in pairs(controllers) do
+            if v ~= controllers.keyboard and v == joystick then
+                testScene:gamepadreleased(joystick, key)
             end
         end
     end
@@ -146,33 +181,19 @@ end
 
 function love.update(dt)
     if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
-        controllersScene:update()
+        controllersScene:update(dt)
     elseif runningScene == ENUM_SCENES.TEST then
         testScene:update(dt)
-        for k in pairs(love.joystick.getJoysticks()) do
-        end
     end
 end
 
 function love.draw()
+    love.graphics.clear()
     if runningScene == ENUM_SCENES.CONTROLLER_LOAD then
         controllersScene:draw()
     elseif runningScene == ENUM_SCENES.TEST then
         testScene:draw()
     end
-    --[[mainCamera:set()
-    -- 1st layer
-    stage1:draw()
-    -- 2nd layer
-    hero:draw()
-    mainCamera:unset()]]--
-    --[[for i, joystick in ipairs(joysticks) do
-        love.graphics.print(joystick:getName(), 10, i * 20)
-        love.graphics.print("Number of axis: " .. joystick:getAxisCount(), 15, i * 35)
-        for k = 1, joystick:getAxisCount() do
-            love.graphics.print("axis" .. k .. " - " .. joystick:getAxis(k), 20 + (k - 1) * 200, i * 50)
-        end
-    end]]--
 end
 
 function love.quit()
