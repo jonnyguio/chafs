@@ -39,13 +39,15 @@ end
 
 function Camera:set()
     love.graphics.push()
+    --  print ("translating camera")
     love.graphics.rotate(-self.rot)
     love.graphics.scale(self.scaleX, self.scaleY)
     love.graphics.translate(-self.x, -self.y)
 end
 
 function Camera:unset()
-  love.graphics.pop()
+    --  print ("removing translated camera")
+    love.graphics.pop()
 end
 
 function Camera:move(dx, dy, stage)

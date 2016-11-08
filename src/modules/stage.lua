@@ -1,10 +1,11 @@
 local Stage = {}
 Stage.__index = Stage
 
-function Stage.new(filename)
+function Stage.new(filename, index)
     local inst = {}
     setmetatable(inst, Stage)
 
+    inst.index = index or 1
     inst.image = love.graphics.newImage(filename)
     inst.width = inst.image:getWidth()
     inst.height = inst.image:getHeight()

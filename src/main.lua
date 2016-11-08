@@ -1,5 +1,6 @@
 SS = require "modules.spritesheet"
 Player = require "modules.player"
+Monster = require "modules.monster"
 Stage = require "modules.stage"
 Animation = require "modules.animation"
 Animator = require "modules.animator"
@@ -18,6 +19,7 @@ icon = {}
 -- Local Variables
 
 local heroSS, hero, heroAnimations, heroAnimator, heroStateMachine
+local monster1, monsterSS
 local mainCamera
 local controllers
 local testScene, controllersScene
@@ -38,6 +40,7 @@ function love.load()
     ----- Carrega spritesheet, animações e stateMachine
     heroSS = SS.new("media/images/heroSpritesheet.png", 158, 654, 16, 16)
     heroAnimations = Initializer.loadHeroAnimations(heroSS, resize)
+    monsterSS = SS.new("media/images/enemies.png", 425, 503, 16, 16)
 
     ----- Carrega estágio
     stage1 = Stage.new("media/images/map2.jpg")
@@ -49,6 +52,7 @@ function love.load()
     heroAnimator = Animator.new(heroAnimations, heroStateMachine)
     heroAnimator:attach(hero)
     heroAnimator:play()
+    monster1 = Monster.new(monsterSS, monsterSS:createQuad(1, 1, resize), {x = 16 * resize * 14, y = 16 * resize * 5}, 1.5, 4)
 
     ----- Carrega cenas
     controllersScene = Scene.new(ENUM_SCENES.CONTROLLER_LOAD)
@@ -128,9 +132,11 @@ function love.load()
     testScene:addgamepadreleasedFunction(hero.gamepadreleased, hero)
     testScene:addUpdateFunction(mainCamera.update, mainCamera, {2, stage1, hero})
     testScene:addUpdateFunction(hero.update, hero, {})
+    testScene:addUpdateFunction(monster1.update, monster1, {hero})
     testScene:addDrawFunction(hero.draw, hero, {}, ENUM_DRAWORDER.CREATURES)
     testScene:addDrawFunction(stage1.draw, stage1, {}, ENUM_DRAWORDER.SCENARIO)
-    testScene:addCamera(mainCamera, 1, 2)
+    testScene:addDrawFunction(monster1.draw, monster1, {hero}, ENUM_DRAWORDER.CREATURES)
+    testScene:addCamera(mainCamera, 1, 3)
 
     runningScene = ENUM_SCENES.CONTROLLER_LOAD
 end

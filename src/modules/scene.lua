@@ -88,16 +88,18 @@ function Scene:painterReOrder()
     for k = 1, x do
         for j = k, x do
             if self.drawOrders[k] > self.drawOrders[j] then
-                --print("reordenei")
                 aux = self.drawFunctions[j]
                 self.drawFunctions[j] = self.drawFunctions[k]
                 self.drawFunctions[k] = aux
+
                 aux = self.drawFunctionsArgs[j]
                 self.drawFunctionsArgs[j] = self.drawFunctionsArgs[k]
                 self.drawFunctionsArgs[k] = aux
+
                 aux = self.drawFunctionsSelfs[j]
                 self.drawFunctionsSelfs[j] = self.drawFunctionsSelfs[k]
                 self.drawFunctionsSelfs[k] = aux
+
                 aux = self.drawOrders[j]
                 self.drawOrders[j] = self.drawOrders[k]
                 self.drawOrders[k] = aux
@@ -107,20 +109,30 @@ function Scene:painterReOrder()
 end
 
 function Scene:addDrawFunction(func, _self, args, drawOrder)
+    if type(func) ~= "function" then
+        error("Not a function")
+    end
     table.insert(self.drawFunctions, func)
     table.insert(self.drawFunctionsSelfs, _self)
     table.insert(self.drawFunctionsArgs, args)
     table.insert(self.drawOrders, drawOrder)
+    --  print(func, _self, args)
     self:painterReOrder()
 end
 
 function Scene:draw()
-    for k in pairs(self.drawFunctions) do
-        for j in pairs(self.cameras) do
+    local sizeDf = #self.drawFunctions
+    local sizeC = #self.cameras
+    for k = 1, sizeDf do
+        for j = 1, sizeC do
             if k == self.camerasIndexBegin[j] then
                 self.cameras[j]:set()
             end
         end
+        --[[
+        if self.drawFunctionsSelfs[k] and self.drawFunctionsSelfs[k].pos then
+            print(self.drawFunctionsSelfs[k].pos.x, self.drawFunctionsSelfs[k].pos.y)
+        end        ]]
         self.drawFunctions[k](self.drawFunctionsSelfs[k], self.drawFunctionsArgs[k])
         for j in pairs(self.cameras) do
             if k == self.camerasIndexEnd[j] then
