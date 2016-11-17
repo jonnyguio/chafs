@@ -38,8 +38,8 @@ function love.load()
     controllers = {}
 
     ----- Carrega spritesheet, animações e stateMachine
-    heroSS = SS.new("media/images/heroSpritesheet.png", 158, 654, 16, 16)
-    heroAnimations = Initializer.loadHeroAnimations(heroSS, resize)
+    heroSS = SS.new("media/images/heroine.jpg", 128, 128, 32, 32)
+    heroAnimations = Initializer.loadHeroAnimations(heroSS, 1)
     monsterSS = SS.new("media/images/enemies.png", 425, 503, 16, 16)
 
     ----- Carrega estágio
@@ -47,12 +47,12 @@ function love.load()
     stage1:resize(resize)
 
     ----- Carrega player
-    hero = Player.new(heroSS, heroSS:createQuad(1, 5, resize), {x = 16 * resize * 5, y = 16 * resize * 5}, 2)
+    hero = Player.new(heroSS, heroSS:createQuad(1, 5, 1), {x = 32 * 5, y = 32 * 5}, 2)
     heroStateMachine = Initializer.loadHeroStateMachine(hero)
     heroAnimator = Animator.new(heroAnimations, heroStateMachine)
     heroAnimator:attach(hero)
     heroAnimator:play()
-    monster1 = Monster.new(monsterSS, monsterSS:createQuad(1, 1, resize), {x = 16 * resize * 14, y = 16 * resize * 5}, 1.5, 4)
+    monster1 = Monster.new(monsterSS, monsterSS:createQuad(1, 1, resize), {x = 32 * 14, y = 32 * 5}, 1.5, 4)
 
     ----- Carrega cenas
     controllersScene = Scene.new(ENUM_SCENES.CONTROLLER_LOAD)

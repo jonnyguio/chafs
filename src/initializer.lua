@@ -140,8 +140,10 @@ function Initializer.loadHeroAnimations(_HeroSS, resize)
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 1, resize, -1),
             _HeroSS:createQuad(1, 1, resize),
+            _HeroSS:createQuad(2, 1, resize),
+            _HeroSS:createQuad(3, 1, resize),
+            _HeroSS:createQuad(4, 1, resize)
             --_HeroSS:createQuad(1, 5, resize, -1),
             --_HeroSS:createQuad(1, 5, resize),
         }, "walkDown", 0.08)
@@ -157,35 +159,41 @@ function Initializer.loadHeroAnimations(_HeroSS, resize)
         t_HeroAnimations,
         Animation.new(_HeroSS, {
             _HeroSS:createQuad(1, 2, resize),
-            _HeroSS:createQuad(1, 2, resize, -1),
+            _HeroSS:createQuad(2, 2, resize),
+            _HeroSS:createQuad(3, 2, resize),
+            _HeroSS:createQuad(4, 2, resize)
         }, "walkUp", 0.08)
     )
 
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 3, resize),
+            _HeroSS:createQuad(1, 4, resize),
         }, "standLeft", 0.08)
     )
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 3, resize),
             _HeroSS:createQuad(1, 4, resize),
+            _HeroSS:createQuad(2, 4, resize),
+            _HeroSS:createQuad(3, 4, resize),
+            _HeroSS:createQuad(4, 4, resize)
         }, "walkLeft", 0.08)
     )
 
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 3, resize, -1),
+            _HeroSS:createQuad(1, 3, resize)
         }, "standRight", 0.08)
     )
     table.insert(
         t_HeroAnimations,
         Animation.new(_HeroSS, {
-            _HeroSS:createQuad(1, 3, resize, -1),
-            _HeroSS:createQuad(1, 4, resize, -1),
+            _HeroSS:createQuad(1, 3, resize),
+            _HeroSS:createQuad(2, 3, resize),
+            _HeroSS:createQuad(3, 3, resize),
+            _HeroSS:createQuad(4, 3, resize)
         }, "walkRight", 0.08)
     )
     return t_HeroAnimations

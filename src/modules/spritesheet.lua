@@ -16,7 +16,7 @@ end
 
 function SpriteSheet:createQuad(line, column, resize, flipX, flipY, rotation)
     local ret = {}
-    ret.quad = love.graphics.newQuad(((column - 1) * self.widthP + column) * (resize or 1), ((line - 1) * self.heightP + line) * (resize or 1), self.widthP * (resize or 1), self.heightP * (resize or 1), self.widthT * (resize or 1), self.heightT * (resize or 1))
+    ret.quad = love.graphics.newQuad(((column - 1) * self.widthP) * (resize or 1), ((line - 1) * self.heightP) * (resize or 1), self.widthP * (resize or 1), self.heightP * (resize or 1), self.widthT * (resize or 1), self.heightT * (resize or 1))
     ret.flipX = flipX or 1
     ret.flipY = flipY or 1
     ret.rotation = rotation or 0
